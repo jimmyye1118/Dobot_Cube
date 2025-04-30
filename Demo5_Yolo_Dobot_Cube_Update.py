@@ -41,6 +41,7 @@ color_map = {
     'blue': (255, 0, 0),     # 藍色
     'green': (0, 255, 0),    # 綠色
     'yellow': (0, 255, 255), # 黃色
+    'broken': (141, 23, 232)     # 損毀
 }
 
 # 物件計數
@@ -72,7 +73,6 @@ print("Connect status:", CON_STR[state])
 # 控制主迴圈運行
 running = True
 flag_start_work = False
-flag_debug = False
 
 # mp3 播放函數
 def speak(file_name):
@@ -162,7 +162,7 @@ def update_counts(class_name):
 # 接收前端控制指令
 @socketio.on('control')
 def handle_control(data):
-    global flag_start_work, flag_debug
+    global flag_start_work
     command = data.get('command')
     print(f"收到控制指令: {command}")
     if command == 'start':
@@ -171,13 +171,10 @@ def handle_control(data):
     elif command == 'stop':
         flag_start_work = False
         print("Finish")
-    elif command == 'debug':
-        flag_debug = True
-        print("GO Debug")
 
 # 主迴圈（非阻塞）
 def main_loop():
-    global running, flag_start_work, flag_debug
+    global running, flag_start_work
     print("主迴圈啟動")
     img_mask = cv2.imread("mask2.png")
     if img_mask is None:
@@ -211,7 +208,7 @@ def main_loop():
 
         contours, _ = cv2.findContours(mask_non_black, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        results = model.track(cap_mask, persist=True, stream=True, conf=0.5)
+        results = model.track(cap_mask, persist=True, stream=True, conf=0.7)
         Model_detected_objects = []
         Unknown_detected_objects = []
 
@@ -280,18 +277,28 @@ def main_loop():
                 if class_name == 'blue':
                     color_state = "blue"
                     speak(11)
+                    time.sleep(1)
+                    Dobot_work(cX, cY, class_name, 8)
                 elif class_name == 'yellow':
                     color_state = "yellow"
                     speak(12)
+                    time.sleep(1)
+                    Dobot_work(cX, cY, class_name, 8)
                 elif class_name == 'green':
                     color_state = "green"
                     speak(13)
+                    time.sleep(1)
+                    Dobot_work(cX, cY, class_name, 8)
                 elif class_name == 'red':
                     color_state = "red"
                     speak(14)
-
-                time.sleep(1)
-                Dobot_work(cX, cY, class_name, 8)
+                    time.sleep(1)
+                    Dobot_work(cX, cY, class_name, 8)
+                elif class_name == 'broken':
+                    speak(16)
+                    time.sleep(1)
+                    run_conveyor()
+                    time.sleep(4)
                 time.sleep(1)
 
             for obj in Unknown_detected_objects:
@@ -303,8 +310,6 @@ def main_loop():
                 time.sleep(5)
 
         cv2.imshow("camera_input", cap_input)
-        if flag_debug:
-            cv2.imshow("camera_mask", cap_mask)
 
         socketio.sleep(0.1)  # 控制 WebSocket 傳輸頻率
 
