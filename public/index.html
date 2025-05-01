@@ -1,108 +1,153 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>機械手臂控制系統</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        #video-feed {
-            width: 100%;
-            max-width: 640px;
-        }
-        .stats {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>機械手臂控制系統</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    body {
+      font-size: 1.5rem;
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+    h3 {
+      font-size: 2rem;
+      margin-top: 1.5rem;
+    }
+    #video-feed {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .btn {
+      font-size: 1.9rem;
+      padding: 1rem 2rem;
+    }
+    table th, table td {
+      font-size: 1.8rem;
+    }
+    .page {
+      display: none;
+    }
+    .page.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-robot me-2"></i>
-                <strong>機械手臂控制系統</strong>
-            </a>
-        </div>
-    </nav>
-    <div class="container">
-        <h1 class="mt-4">機械手臂控制系統</h1>
-        <div class="row">
-            <div class="col-md-8">
-                <h3>即時影像</h3>
-                <img id="video-feed" src="" alt="攝影機影像">
-            </div>
-            <div class="col-md-4">
-                <h3>控制</h3>
-                <button class="btn btn-success mb-2">啟動</button>
-                <button class="btn btn-danger mb-2">停止</button>
-                <h3 class="stats">物件統計</h3>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>類型</th>
-                            <th>數量</th>
-                        </tr>
-                    </thead>
-                    <tbody id="object-counts">
-                        <tr><td>紅色</td><td id="red-count">0</td></tr>
-                        <tr><td>藍色</td><td id="blue-count">0</td></tr>
-                        <tr><td>黃色</td><td id="yellow-count">0</td></tr>
-                        <tr><td>綠色</td><td id="green-count">0</td></tr>
-                        <tr><td>破損</td><td id="broken-count">0</td></tr>
-                        <tr><td>未知</td><td id="unknown-count">0</td></tr>
-                        <tr><td>總數</td><td id="total-count">0</td></tr>
-                        <tr><td>良好率</td><td id="good-rate">0%</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- 導覽列 -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <i class="bi bi-robot me-2"></i><strong>機械手臂控制系統</strong>
+      </a>
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link active" href="#" onclick="showPage('home')">首頁</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" onclick="showPage('system')">系統</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
+    <!-- 首頁 -->
+    <div id="home" class="page active">
+      <h1>歡迎使用機械手臂控制系統</h1>
+      <p class="lead">本系統可即時顯示影像、統計各類物件數量，並透過按鈕遠端控制機械手臂運作。</p>
+      <ul>
+        <li>即時影像顯示</li>
+        <li>物件自動辨識與統計</li>
+        <li>啟動與停止機械手臂</li>
+      </ul>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof io === 'undefined') {
-                console.error('Socket.IO 庫載入失敗，請檢查網路或 CDN');
-                return;
-            }
+    <!-- 系統頁面 -->
+    <div id="system" class="page">
+      <h1>控制系統介面</h1>
+      <div class="row">
+        <div class="col-md-8">
+          <h3>即時影像</h3>
+          <img id="video-feed" src="" alt="攝影機影像">
+        </div>
+        <div class="col-md-4">
+          <h3>控制</h3>
+          <button class="btn btn-success mb-3">啟動</button>
+          <button class="btn btn-danger mb-3">停止</button>
+          <h3>物件統計</h3>
+          <table class="table table-bordered">
+            <thead class="table-secondary">
+              <tr><th>類型</th><th>數量</th></tr>
+            </thead>
+            <tbody id="object-counts">
+              <tr><td>紅色</td><td id="red-count">0</td></tr>
+              <tr><td>藍色</td><td id="blue-count">0</td></tr>
+              <tr><td>黃色</td><td id="yellow-count">0</td></tr>
+              <tr><td>綠色</td><td id="green-count">0</td></tr>
+              <tr><td>破損</td><td id="broken-count">0</td></tr>
+              <tr><td>未知</td><td id="unknown-count">0</td></tr>
+              <tr><td>總數</td><td id="total-count">0</td></tr>
+              <tr><td>良好率</td><td id="good-rate">0%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            const socket = io('http://localhost:3000');
-            console.log('Socket 初始化:', socket);
+  <!-- Socket.IO 與頁面切換 -->
+  <script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
+  <script>
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+      document.querySelector(`[onclick="showPage('${pageId}')"]`).classList.add('active');
+    }
 
-            socket.on('connect', () => {
-                console.log('已連接到伺服器');
-            });
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof io === 'undefined') {
+        console.error('Socket.IO 載入失敗');
+        return;
+      }
 
-            socket.on('frame', (data) => {
-                console.log('收到影像數據:', data);
-                // 直接使用 data，因為它已經是 base64 字符串
-                if (typeof data !== 'string' || data.length === 0) {
-                    console.error('無效的 base64 字符串:', data);
-                    return;
-                }
-                document.getElementById('video-feed').src = `data:image/jpeg;base64,${data}`;
-            });
+      const socket = io('http://localhost:3000');
 
-            socket.on('object_counts', (data) => {
-                document.getElementById('red-count').textContent = data.counts.red || 0;
-                document.getElementById('blue-count').textContent = data.counts.blue || 0;
-                document.getElementById('yellow-count').textContent = data.counts.yellow || 0;
-                document.getElementById('green-count').textContent = data.counts.green || 0;
-                document.getElementById('broken-count').textContent = data.counts.broken || 0;
-                document.getElementById('unknown-count').textContent = data.counts.unknown || 0;
-                document.getElementById('total-count').textContent = data.total;
-                document.getElementById('good-rate').textContent = `${data.good_rate}%`;
-            });
+      socket.on('connect', () => {
+        console.log('已連接到伺服器');
+      });
 
-            function sendControl(command) {
-                console.log('發送指令:', command);
-                socket.emit('control', { command });
-            }
+      socket.on('frame', (data) => {
+        if (typeof data !== 'string' || data.length === 0) return;
+        document.getElementById('video-feed').src = `data:image/jpeg;base64,${data}`;
+      });
 
-            document.querySelector('.btn-success').addEventListener('click', () => sendControl('start'));
-            document.querySelector('.btn-danger').addEventListener('click', () => sendControl('stop'));
-        });
-    </script>
+      socket.on('object_counts', (data) => {
+        document.getElementById('red-count').textContent = data.counts.red || 0;
+        document.getElementById('blue-count').textContent = data.counts.blue || 0;
+        document.getElementById('yellow-count').textContent = data.counts.yellow || 0;
+        document.getElementById('green-count').textContent = data.counts.green || 0;
+        document.getElementById('broken-count').textContent = data.counts.broken || 0;
+        document.getElementById('unknown-count').textContent = data.counts.unknown || 0;
+        document.getElementById('total-count').textContent = data.total;
+        document.getElementById('good-rate').textContent = `${data.good_rate}%`;
+      });
+
+      function sendControl(command) {
+        console.log('發送控制指令:', command);
+        socket.emit('control', { command });
+      }
+
+      document.querySelector('.btn-success').addEventListener('click', () => sendControl('start'));
+      document.querySelector('.btn-danger').addEventListener('click', () => sendControl('stop'));
+    });
+  </script>
 </body>
 </html>
